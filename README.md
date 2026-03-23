@@ -9,7 +9,7 @@ Een beveiligd digitaal nalatenschapsplatform voor de Nederlandse markt, ontworpe
 ### Vereisten
 - Node.js 18+
 - npm of yarn
-- (Optioneel) PostgreSQL — SQLite werkt direct
+- Supabase project (PostgreSQL)
 
 ### Installatie
 
@@ -23,8 +23,9 @@ npm install
 # 3. Kopieer de omgevingsvariabelen
 cp .env.example .env.local
 
-# 4. Pas .env.local aan (optioneel voor SQLite)
-# DATABASE_URL="file:./dev.db"
+# 4. Pas .env.local aan (Supabase)
+# DATABASE_URL="postgresql://postgres.<project-ref>:<password>@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+# DIRECT_URL="postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres"
 # NEXTAUTH_SECRET="verander-dit-naar-een-sterk-geheim"
 # NEXTAUTH_URL="http://localhost:3000"
 
@@ -39,6 +40,22 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
+
+---
+
+## ☁️ Vercel + Supabase Deploy
+
+1. Maak in Supabase een project aan en kopieer:
+   - **Connection pooling URL** (poort `6543`) → `DATABASE_URL`
+   - **Direct connection URL** (poort `5432`) → `DIRECT_URL`
+2. Zet in Vercel (Project Settings → Environment Variables):
+   - `DATABASE_URL`
+   - `DIRECT_URL`
+   - `NEXTAUTH_SECRET`
+   - `NEXTAUTH_URL` (je productie-URL)
+3. Laat Vercel builden met:
+   - `prisma migrate deploy && next build` (aanbevolen zodra je migraties gebruikt)
+4. Voor eerste setup kun je lokaal `npx prisma db push` en optioneel `npm run db:seed` draaien.
 
 ---
 
@@ -188,7 +205,7 @@ Dit systeem is ontworpen binnen de Nederlandse juridische context:
 4. **Geen MFA**: Twee-factor authenticatie is nog niet geïmplementeerd
 5. **Geen notarisverificatie**: Notarissen worden nog niet geverifieerd via het KNB-register
 6. **Geen audit-onveranderlijkheid**: Audit logs zijn in de database aanpasbaar — in productie een append-only store gebruiken
-7. **SQLite**: Voor productie PostgreSQL gebruiken met volledige ACID-garanties
+7. **Demo-seeding**: Seeddata alleen gebruiken in testomgevingen, niet in productie
 
 ---
 
