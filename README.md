@@ -24,7 +24,8 @@ npm install
 cp .env.example .env.local
 
 # 4. Pas .env.local aan (Supabase)
-# DATABASE_URL="postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres"
+# DATABASE_URL="postgresql://postgres.<project-ref>:<password>@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+# DIRECT_URL="postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres"
 # NEXTAUTH_SECRET="verander-dit-naar-een-sterk-geheim"
 # NEXTAUTH_URL="http://localhost:3000"
 
@@ -45,9 +46,11 @@ Open [http://localhost:3000](http://localhost:3000)
 ## ☁️ Vercel + Supabase Deploy
 
 1. Maak in Supabase een project aan en kopieer:
-   - **Direct connection URL** (poort `5432`) → `DATABASE_URL`
+   - **Connection pooling URL** (poort `6543`) → `DATABASE_URL`
+   - **Direct connection URL** (poort `5432`) → `DIRECT_URL`
 2. Zet in Vercel (Project Settings → Environment Variables):
    - `DATABASE_URL`
+   - `DIRECT_URL`
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL` (je productie-URL)
 3. Laat Vercel builden met:
