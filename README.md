@@ -29,13 +29,10 @@ cp .env.example .env.local
 # NEXTAUTH_SECRET="verander-dit-naar-een-sterk-geheim"
 # NEXTAUTH_URL="http://localhost:3000"
 
-# 5. Initialiseer de database
-npx prisma db push
+# 5. Initialiseer database + laad demo data
+npm run db:setup
 
-# 6. Laad demo data
-npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
-
-# 7. Start de dev server
+# 6. Start de dev server
 npm run dev
 ```
 
