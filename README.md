@@ -9,7 +9,7 @@ Een beveiligd digitaal nalatenschapsplatform voor de Nederlandse markt, ontworpe
 ### Vereisten
 - Node.js 18+
 - npm of yarn
-- (Optioneel) PostgreSQL — SQLite werkt direct
+- Supabase project (PostgreSQL)
 
 ### Installatie
 
@@ -23,22 +23,52 @@ npm install
 # 3. Kopieer de omgevingsvariabelen
 cp .env.example .env.local
 
-# 4. Pas .env.local aan (optioneel voor SQLite)
-# DATABASE_URL="file:./dev.db"
+# 4. Pas .env.local aan (Supabase)
+# DATABASE_URL="postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres"
 # NEXTAUTH_SECRET="verander-dit-naar-een-sterk-geheim"
 # NEXTAUTH_URL="http://localhost:3000"
 
-# 5. Initialiseer de database
-npx prisma db push
+# 5. Initialiseer database + laad demo data
+npm run db:setup
 
-# 6. Laad demo data
-npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
-
-# 7. Start de dev server
+# 6. Start de dev server
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
+
+---
+
+## ☁️ Vercel + Supabase Deploy
+
+1. Maak in Supabase een project aan en kopieer:
+   - **Direct connection URL** (poort `5432`) → `DATABASE_URL`
+2. Zet in Vercel (Project Settings → Environment Variables):
+   - `DATABASE_URL`
+   - `NEXTAUTH_SECRET`
+   - `NEXTAUTH_URL` (je productie-URL)
+3. Laat Vercel builden met:
+   - `prisma migrate deploy && next build` (aanbevolen zodra je migraties gebruikt)
+4. Voor eerste setup kun je lokaal `npx prisma db push` en optioneel `npm run db:seed` draaien.
+
+### Database is leeg na deploy?
+
+Dat is normaal: deploys voeren geen demo-seed uit. Als je testdata wilt:
+
+1. Zet tijdelijk lokaal je productie `DATABASE_URL` (Supabase direct URL, poort 5432).
+2. Draai eenmalig:
+
+```bash
+npm run db:seed
+```
+
+3. Seeden in productie is expres beveiligd. Alleen als je dit bewust wilt forceren:
+
+```bash
+ALLOW_PROD_SEED=true npm run db:seed
+```
+
+> Let op: demo-accounts zijn alleen bedoeld voor test/acceptatie, niet voor live gebruik.
 
 ---
 
@@ -188,7 +218,7 @@ Dit systeem is ontworpen binnen de Nederlandse juridische context:
 4. **Geen MFA**: Twee-factor authenticatie is nog niet geïmplementeerd
 5. **Geen notarisverificatie**: Notarissen worden nog niet geverifieerd via het KNB-register
 6. **Geen audit-onveranderlijkheid**: Audit logs zijn in de database aanpasbaar — in productie een append-only store gebruiken
-7. **SQLite**: Voor productie PostgreSQL gebruiken met volledige ACID-garanties
+7. **Demo-seeding**: Seeddata alleen gebruiken in testomgevingen, niet in productie
 
 ---
 

@@ -3,7 +3,23 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+function assertSeedSafety() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL ontbreekt. Zet een geldige PostgreSQL connectiestring.");
+  }
+
+  const isProductionEnv =
+    process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
+
+  if (isProductionEnv && process.env.ALLOW_PROD_SEED !== "true") {
+    throw new Error(
+      "Seed in productie is geblokkeerd. Zet ALLOW_PROD_SEED=true voor een bewuste eenmalige seed."
+    );
+  }
+}
+
 async function main() {
+  assertSeedSafety();
   console.log("🌱 Seeding demo data...");
 
   const pw = await bcrypt.hash("demo1234", 12);
