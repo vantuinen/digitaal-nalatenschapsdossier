@@ -1,0 +1,179 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String   @id @default(cuid())
+  name           String?
+  email          String   @unique
+  emailVerified  DateTime?
+  password       String?
+  role           String   @default("TESTATOR")
+  image          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  vault          LegacyVault?
+  notaryProfile  NotaryProfile?
+  accounts       Account[]
+  sessions       Session[]
+  auditLogs      AuditLog[]
+  beneficiaryEntries Beneficiary[] @relation("BeneficiaryUser")
+  assignedVaults LegacyVault[] @relation("AssignedNotary")
+}
+
+model NotaryProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kvkNumber     String?
+  chamberNumber String?
+  firmName      String?
+  city          String?
+  verified      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model LegacyVault {
+  id              String    @id @default(cuid())
+  ownerId         String    @unique
+  owner           User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title           String    @default("Mijn Digitale Nalatenschap")
+  description     String?
+  status          String    @default("DRAFT")
+
+  notaryId        String?
+  notary          User?     @relation("AssignedNotary", fields: [notaryId], references: [id])
+  notaryName      String?
+  notaryEmail     String?
+  notaryAccepted  String    @default("NONE")  // NONE | PENDING | ACCEPTED | REJECTED
+
+  testamentRef    String?
+  notaryTestamentRef String?   // Notariële annotatie — alleen bewerkbaar door notaris
+  lastWillDate    DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  activatedAt     DateTime?
+  deathReportedAt DateTime?
+
+  assets          DigitalAsset[]
+  beneficiaries   Beneficiary[]
+  releaseRequests ReleaseRequest[]
+  auditLogs       AuditLog[]
+}
+
+model DigitalAsset {
+  id                String      @id @default(cuid())
+  vaultId           String
+  vault             LegacyVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  name              String
+  assetType         String      @default("OTHER")
+  platform          String?
+  description       String?
+  instructions      String?
+  sensitiveNotes    String?
+  recommendedAction String      @default("INFORMATION_ONLY")
+  accessUrl         String?
+  priority          Int         @default(0)
+
+  beneficiaryId     String?
+  beneficiary       Beneficiary? @relation(fields: [beneficiaryId], references: [id])
+
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model Beneficiary {
+  id          String      @id @default(cuid())
+  vaultId     String
+  vault       LegacyVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+
+  userId      String?
+  user        User?       @relation("BeneficiaryUser", fields: [userId], references: [id])
+
+  name        String
+  email       String
+  relation    String?
+  invitedAt   DateTime?
+  acceptedAt  DateTime?
+
+  assets      DigitalAsset[]
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model ReleaseRequest {
+  id              String      @id @default(cuid())
+  vaultId         String
+  vault           LegacyVault @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+
+  requestedBy     String
+  requestedByRole String
+  reason          String?
+
+  status          String      @default("PENDING")
+
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  notaryNotes     String?
+  deathCertRef    String?
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model AuditLog {
+  id          String       @id @default(cuid())
+  vaultId     String?
+  vault       LegacyVault? @relation(fields: [vaultId], references: [id])
+  userId      String?
+  user        User?        @relation(fields: [userId], references: [id])
+  action      String
+  details     String?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime     @default(now())
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
