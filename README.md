@@ -1,4 +1,4 @@
-# Digitaal Nalatenschapsdossier — MVP v0.1
+# Digitaal Nalatenschapsdossier — MVP v0.1 test
 
 Een beveiligd digitaal nalatenschapsplatform voor de Nederlandse markt, ontworpen voor erflaters, notarissen en erfgenamen.
 
