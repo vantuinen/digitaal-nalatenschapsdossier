@@ -24,8 +24,7 @@ npm install
 cp .env.example .env.local
 
 # 4. Pas .env.local aan (Supabase)
-# DATABASE_URL="postgresql://postgres.<project-ref>:<password>@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
-# DIRECT_URL="postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres"
+# DATABASE_URL="postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres"
 # NEXTAUTH_SECRET="verander-dit-naar-een-sterk-geheim"
 # NEXTAUTH_URL="http://localhost:3000"
 
@@ -43,16 +42,44 @@ Open [http://localhost:3000](http://localhost:3000)
 ## ☁️ Vercel + Supabase Deploy
 
 1. Maak in Supabase een project aan en kopieer:
-   - **Connection pooling URL** (poort `6543`) → `DATABASE_URL`
-   - **Direct connection URL** (poort `5432`) → `DIRECT_URL`
+   - **Direct connection URL** (poort `5432`) → `DATABASE_URL`
 2. Zet in Vercel (Project Settings → Environment Variables):
    - `DATABASE_URL`
-   - `DIRECT_URL`
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL` (je productie-URL)
 3. Laat Vercel builden met:
    - `prisma migrate deploy && next build` (aanbevolen zodra je migraties gebruikt)
 4. Voor eerste setup kun je lokaal `npx prisma db push` en optioneel `npm run db:seed` draaien.
+
+### Database is leeg na deploy?
+
+Dat is normaal: deploys voeren geen demo-seed uit. Als je testdata wilt:
+
+1. Zet tijdelijk lokaal je productie `DATABASE_URL` (Supabase direct URL, poort 5432).
+2. Draai eenmalig:
+
+```bash
+npm run db:seed
+```
+
+3. Seeden in productie is expres beveiligd. Alleen als je dit bewust wilt forceren:
+
+```bash
+ALLOW_PROD_SEED=true npm run db:seed
+```
+
+> Let op: demo-accounts zijn alleen bedoeld voor test/acceptatie, niet voor live gebruik.
+
+---
+
+## 🤖 AI Nalatenschapsassistent (uitbreidbaar)
+
+- Nieuwe pagina: `/assistant` (voor erflaters) met:
+  - automatische samenvatting van bezittingen en toewijzingen
+  - voorgestelde vervolgstappen
+  - checklist op basis van ingevoerde wensen
+- API endpoint: `POST /api/assistant/insights`
+- Logica staat in `src/lib/estate-assistant.ts` en is bewust modulair, zodat je later eenvoudig een echte LLM-provider (bijv. OpenAI/Supabase Edge Function) kunt koppelen.
 
 ---
 
