@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Vault, FileText, Users, Scale,
-  ClipboardList, Settings, LogOut, ChevronDown, ChevronRight
+  ClipboardList, Settings, LogOut, ChevronDown, ChevronRight, Sparkles
 } from "lucide-react";
 
 const testatorNav = [
@@ -15,6 +15,7 @@ const testatorNav = [
   { href: "/assets",          label: "Bezittingen",       icon: FileText },
   { href: "/beneficiaries",   label: "Erfgenamen",        icon: Users },
   { href: "/notary",          label: "Notaris",           icon: Scale },
+  { href: "/assistant",       label: "AI Assistent",      icon: Sparkles },
   { href: "/audit",           label: "Activiteitenlog",   icon: ClipboardList },
 ];
 
