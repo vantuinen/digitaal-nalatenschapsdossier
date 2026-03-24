@@ -47,18 +47,13 @@ Open [http://localhost:3000](http://localhost:3000)
    - `DATABASE_URL`
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL` (je productie-URL)
-3. Gebruik de standaard build (`npm run build`): deze voert automatisch uit:
-   - `prisma generate`
-   - `prisma db push` (als `DATABASE_URL` gezet is)
-   - `next build`
-4. Optioneel: zet `SEED_ON_DEPLOY=true` om tijdens deploy demo-data te seeden.
-5. Voor eerste setup kun je lokaal `npx prisma db push` en optioneel `npm run db:seed` draaien.
+3. Laat Vercel builden met:
+   - `prisma migrate deploy && next build` (aanbevolen zodra je migraties gebruikt)
+4. Voor eerste setup kun je lokaal `npx prisma db push` en optioneel `npm run db:seed` draaien.
 
 ### Database is leeg na deploy?
 
-Als er geen tabellen zijn, controleer eerst of `DATABASE_URL` correct in Vercel staat. De build probeert tabellen nu automatisch aan te maken via `prisma db push`.
-
-Dat de database leeg is qua data is normaal: deploys voeren standaard geen demo-seed uit. Als je testdata wilt:
+Dat is normaal: deploys voeren geen demo-seed uit. Als je testdata wilt:
 
 1. Zet tijdelijk lokaal je productie `DATABASE_URL` (Supabase direct URL, poort 5432).
 2. Draai eenmalig:
@@ -85,20 +80,6 @@ ALLOW_PROD_SEED=true npm run db:seed
   - checklist op basis van ingevoerde wensen
 - API endpoint: `POST /api/assistant/insights`
 - Logica staat in `src/lib/estate-assistant.ts` en is bewust modulair, zodat je later eenvoudig een echte LLM-provider (bijv. OpenAI/Supabase Edge Function) kunt koppelen.
-
----
-
-## 🛠 Beheer Backend (Admin)
-
-- Nieuwe admin backend endpoints:
-  - `GET /api/admin/status` — platformstatus + kerncijfers
-  - `GET /api/admin/settings` — huidige globale instellingen
-  - `PATCH /api/admin/settings` — instellingen aanpassen
-- Nieuwe admin pagina: `/admin` (alleen voor rol `ADMIN`) om status te bekijken en instellingen te wijzigen.
-- Ondersteunde globale settings:
-  - `maintenance_mode`
-  - `allow_registrations` (wordt afgedwongen in registratie-endpoint)
-  - `assistant_enabled` (wordt afgedwongen in AI-assistent endpoint)
 
 ---
 
