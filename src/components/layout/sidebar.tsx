@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Vault, FileText, Users, Scale,
-  ClipboardList, Settings, LogOut, ChevronDown, ChevronRight
+  ClipboardList, Settings, LogOut, ChevronDown, ChevronRight, Sparkles, Shield
 } from "lucide-react";
 
 const testatorNav = [
@@ -15,6 +15,7 @@ const testatorNav = [
   { href: "/assets",          label: "Bezittingen",       icon: FileText },
   { href: "/beneficiaries",   label: "Erfgenamen",        icon: Users },
   { href: "/notary",          label: "Notaris",           icon: Scale },
+  { href: "/assistant",       label: "AI Assistent",      icon: Sparkles },
   { href: "/audit",           label: "Activiteitenlog",   icon: ClipboardList },
 ];
 
@@ -27,6 +28,10 @@ const notaryNav = [
 
 const beneficiaryNav = [
   { href: "/beneficiary-dashboard", label: "Mijn Toegang", icon: LayoutDashboard },
+];
+
+const adminNav = [
+  { href: "/admin", label: "Beheercentrum", icon: Shield },
 ];
 
 function NavSection({ title, items, defaultOpen = true }: {
@@ -96,9 +101,11 @@ export function Sidebar() {
   const isTestator    = roles.includes("TESTATOR");
   const isNotary      = roles.includes("NOTARY");
   const isBeneficiary = roles.includes("BENEFICIARY");
+  const isAdmin       = roles.includes("ADMIN");
   const isMultiRole   = (isTestator || isNotary) && isBeneficiary;
 
   const roleLabel =
+    isAdmin ? "Beheerder" :
     isNotary ? "Notaris" :
     isMultiRole ? "Erflater & Erfgenaam" :
     isTestator ? "Erflater" :
@@ -152,6 +159,13 @@ export function Sidebar() {
             title={isMultiRole ? "Als Erfgenaam" : undefined}
             items={beneficiaryNav}
             defaultOpen={true}
+          />
+        )}
+
+        {isAdmin && (
+          <NavSection
+            title="Beheer"
+            items={adminNav}
           />
         )}
       </nav>
