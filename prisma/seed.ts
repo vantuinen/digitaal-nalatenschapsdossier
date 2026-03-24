@@ -38,6 +38,13 @@ async function main() {
     create: { name: "Mr. A. de Vries", email: "notaris@demo.nl", password: pw, role: "NOTARY" },
   });
 
+  // ── 2b. Admin ─────────────────────────────────────────────────────────────
+  await prisma.user.upsert({
+    where: { email: "admin@demo.nl" },
+    update: {},
+    create: { name: "Platform Beheer", email: "admin@demo.nl", password: pw, role: "ADMIN" },
+  });
+
   await prisma.notaryProfile.upsert({
     where: { userId: notaris.id },
     update: {},
@@ -48,6 +55,21 @@ async function main() {
       verified: true,
     },
   });
+
+  // ── 2c. App settings defaults ─────────────────────────────────────────────
+  const defaultSettings = [
+    { key: "maintenance_mode", value: "false" },
+    { key: "allow_registrations", value: "true" },
+    { key: "assistant_enabled", value: "true" },
+  ];
+
+  for (const setting of defaultSettings) {
+    await prisma.appSetting.upsert({
+      where: { key: setting.key },
+      update: { value: setting.value },
+      create: setting,
+    });
+  }
 
   // ── 3. Beneficiaries ──────────────────────────────────────────────────────
   const lisa = await prisma.user.upsert({

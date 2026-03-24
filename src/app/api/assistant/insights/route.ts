@@ -18,6 +18,17 @@ export async function POST(req: Request) {
     );
   }
 
+  const assistantSetting = await prisma.appSetting.findUnique({
+    where: { key: "assistant_enabled" },
+  });
+  const assistantEnabled = readBooleanSetting(assistantSetting?.value, true);
+  if (!assistantEnabled) {
+    return NextResponse.json(
+      { error: "De AI assistent is tijdelijk uitgeschakeld door beheer." },
+      { status: 503 }
+    );
+  }
+
   const body = await req.json().catch(() => ({}));
   const wishesText = typeof body?.wishesText === "string" ? body.wishesText : "";
 

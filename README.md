@@ -91,6 +91,7 @@ ALLOW_PROD_SEED=true npm run db:seed
 | Notaris | notaris@demo.nl | demo1234 |
 | Erfgenaam | erfgenaam@demo.nl | demo1234 |
 | Erflater (in behandeling) | maria@demo.nl | demo1234 |
+| Beheerder | admin@demo.nl | demo1234 |
 
 ---
 
