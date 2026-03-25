@@ -9,7 +9,7 @@ Een beveiligd digitaal nalatenschapsplatform voor de Nederlandse markt, ontworpe
 ### Vereisten
 - Node.js 18+
 - npm of yarn
-- (Optioneel) PostgreSQL — SQLite werkt direct
+- Supabase project (PostgreSQL)
 
 ### Installatie
 
@@ -23,22 +23,90 @@ npm install
 # 3. Kopieer de omgevingsvariabelen
 cp .env.example .env.local
 
-# 4. Pas .env.local aan (optioneel voor SQLite)
-# DATABASE_URL="file:./dev.db"
+# 4. Pas .env.local aan (Supabase)
+# DATABASE_URL="postgresql://postgres.<project-ref>:<password>@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require"
 # NEXTAUTH_SECRET="verander-dit-naar-een-sterk-geheim"
 # NEXTAUTH_URL="http://localhost:3000"
 
-# 5. Initialiseer de database
-npx prisma db push
+# 5. Initialiseer database + laad demo data
+npm run db:setup
 
-# 6. Laad demo data
-npx ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
-
-# 7. Start de dev server
+# 6. Start de dev server
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
+
+---
+
+## ☁️ Vercel + Supabase Deploy
+
+1. Maak in Supabase een project aan en kopieer:
+   - **Session Pooler URL** (poort `6543`) → `DATABASE_URL` (aanbevolen voor Vercel runtime/build)
+2. Zet in Vercel (Project Settings → Environment Variables):
+   - `DATABASE_URL`
+   - `NEXTAUTH_SECRET`
+   - `NEXTAUTH_URL` (je productie-URL)
+3. Gebruik de standaard build (`npm run build`): deze voert automatisch uit:
+   - `prisma generate`
+   - optioneel `prisma db push` (alleen als `RUN_DB_PUSH_ON_BUILD=true`)
+   - `next build`
+4. Optioneel: zet `RUN_DB_PUSH_ON_BUILD=true` als je schema tijdens build wilt toepassen.
+5. Optioneel: zet `SEED_ON_DEPLOY=true` om tijdens deploy demo-data te seeden.
+6. Voor eerste setup kun je lokaal `npx prisma db push` en optioneel `npm run db:seed` draaien.
+
+### Database is leeg na deploy?
+
+Als er geen tabellen zijn, controleer eerst of `DATABASE_URL` correct in Vercel staat én of je `RUN_DB_PUSH_ON_BUILD=true` gebruikt (of voer lokaal `npx prisma db push` uit tegen productie DB).
+
+Zie je `P1001: Can't reach database server`? Dan is meestal de connectiestring/host fout of niet bereikbaar:
+
+1. Gebruik de Supabase **pooler host** op poort `6543` i.p.v. `db.<project-ref>.supabase.co:5432`.
+2. Voeg `?sslmode=require` toe aan de URL.
+3. Controleer of het Supabase project niet gepauzeerd is.
+4. Redeploy na aanpassen van `DATABASE_URL`.
+
+Dat de database leeg is qua data is normaal: deploys voeren standaard geen demo-seed uit. Als je testdata wilt:
+
+1. Zet tijdelijk lokaal je productie `DATABASE_URL` (bij voorkeur Supabase pooler URL, poort 6543).
+2. Draai eenmalig:
+
+```bash
+npm run db:seed
+```
+
+3. Seeden in productie is expres beveiligd. Alleen als je dit bewust wilt forceren:
+
+```bash
+ALLOW_PROD_SEED=true npm run db:seed
+```
+
+> Let op: demo-accounts zijn alleen bedoeld voor test/acceptatie, niet voor live gebruik.
+
+---
+
+## 🤖 AI Nalatenschapsassistent (uitbreidbaar)
+
+- Nieuwe pagina: `/assistant` (voor erflaters) met:
+  - automatische samenvatting van bezittingen en toewijzingen
+  - voorgestelde vervolgstappen
+  - checklist op basis van ingevoerde wensen
+- API endpoint: `POST /api/assistant/insights`
+- Logica staat in `src/lib/estate-assistant.ts` en is bewust modulair, zodat je later eenvoudig een echte LLM-provider (bijv. OpenAI/Supabase Edge Function) kunt koppelen.
+
+---
+
+## 🛠 Beheer Backend (Admin)
+
+- Nieuwe admin backend endpoints:
+  - `GET /api/admin/status` — platformstatus + kerncijfers
+  - `GET /api/admin/settings` — huidige globale instellingen
+  - `PATCH /api/admin/settings` — instellingen aanpassen
+- Nieuwe admin pagina: `/admin` (alleen voor rol `ADMIN`) om status te bekijken en instellingen te wijzigen.
+- Ondersteunde globale settings:
+  - `maintenance_mode`
+  - `allow_registrations` (wordt afgedwongen in registratie-endpoint)
+  - `assistant_enabled` (wordt afgedwongen in AI-assistent endpoint)
 
 ---
 
@@ -50,6 +118,7 @@ Open [http://localhost:3000](http://localhost:3000)
 | Notaris | notaris@demo.nl | demo1234 |
 | Erfgenaam | erfgenaam@demo.nl | demo1234 |
 | Erflater (in behandeling) | maria@demo.nl | demo1234 |
+| Beheerder | admin@demo.nl | demo1234 |
 
 ---
 
@@ -188,7 +257,7 @@ Dit systeem is ontworpen binnen de Nederlandse juridische context:
 4. **Geen MFA**: Twee-factor authenticatie is nog niet geïmplementeerd
 5. **Geen notarisverificatie**: Notarissen worden nog niet geverifieerd via het KNB-register
 6. **Geen audit-onveranderlijkheid**: Audit logs zijn in de database aanpasbaar — in productie een append-only store gebruiken
-7. **SQLite**: Voor productie PostgreSQL gebruiken met volledige ACID-garanties
+7. **Demo-seeding**: Seeddata alleen gebruiken in testomgevingen, niet in productie
 
 ---
 

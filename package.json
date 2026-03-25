@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/build.mjs",
     "start": "next start",
     "db:push": "prisma db push",
+    "db:setup": "prisma db push && npm run db:seed",
     "db:seed": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
