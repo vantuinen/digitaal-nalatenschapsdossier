@@ -24,7 +24,7 @@ npm install
 cp .env.example .env.local
 
 # 4. Pas .env.local aan (Supabase)
-# DATABASE_URL="postgresql://postgres:<password>@db.<project-ref>.supabase.co:5432/postgres"
+# DATABASE_URL="postgresql://postgres.<project-ref>:<password>@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require"
 # NEXTAUTH_SECRET="verander-dit-naar-een-sterk-geheim"
 # NEXTAUTH_URL="http://localhost:3000"
 
@@ -42,20 +42,33 @@ Open [http://localhost:3000](http://localhost:3000)
 ## ☁️ Vercel + Supabase Deploy
 
 1. Maak in Supabase een project aan en kopieer:
-   - **Direct connection URL** (poort `5432`) → `DATABASE_URL`
+   - **Session Pooler URL** (poort `6543`) → `DATABASE_URL` (aanbevolen voor Vercel runtime/build)
 2. Zet in Vercel (Project Settings → Environment Variables):
    - `DATABASE_URL`
    - `NEXTAUTH_SECRET`
    - `NEXTAUTH_URL` (je productie-URL)
-3. Laat Vercel builden met:
-   - `prisma migrate deploy && next build` (aanbevolen zodra je migraties gebruikt)
-4. Voor eerste setup kun je lokaal `npx prisma db push` en optioneel `npm run db:seed` draaien.
+3. Gebruik de standaard build (`npm run build`): deze voert automatisch uit:
+   - `prisma generate`
+   - optioneel `prisma db push` (alleen als `RUN_DB_PUSH_ON_BUILD=true`)
+   - `next build`
+4. Optioneel: zet `RUN_DB_PUSH_ON_BUILD=true` als je schema tijdens build wilt toepassen.
+5. Optioneel: zet `SEED_ON_DEPLOY=true` om tijdens deploy demo-data te seeden.
+6. Voor eerste setup kun je lokaal `npx prisma db push` en optioneel `npm run db:seed` draaien.
 
 ### Database is leeg na deploy?
 
-Dat is normaal: deploys voeren geen demo-seed uit. Als je testdata wilt:
+Als er geen tabellen zijn, controleer eerst of `DATABASE_URL` correct in Vercel staat én of je `RUN_DB_PUSH_ON_BUILD=true` gebruikt (of voer lokaal `npx prisma db push` uit tegen productie DB).
 
-1. Zet tijdelijk lokaal je productie `DATABASE_URL` (Supabase direct URL, poort 5432).
+Zie je `P1001: Can't reach database server`? Dan is meestal de connectiestring/host fout of niet bereikbaar:
+
+1. Gebruik de Supabase **pooler host** op poort `6543` i.p.v. `db.<project-ref>.supabase.co:5432`.
+2. Voeg `?sslmode=require` toe aan de URL.
+3. Controleer of het Supabase project niet gepauzeerd is.
+4. Redeploy na aanpassen van `DATABASE_URL`.
+
+Dat de database leeg is qua data is normaal: deploys voeren standaard geen demo-seed uit. Als je testdata wilt:
+
+1. Zet tijdelijk lokaal je productie `DATABASE_URL` (bij voorkeur Supabase pooler URL, poort 6543).
 2. Draai eenmalig:
 
 ```bash
@@ -80,6 +93,20 @@ ALLOW_PROD_SEED=true npm run db:seed
   - checklist op basis van ingevoerde wensen
 - API endpoint: `POST /api/assistant/insights`
 - Logica staat in `src/lib/estate-assistant.ts` en is bewust modulair, zodat je later eenvoudig een echte LLM-provider (bijv. OpenAI/Supabase Edge Function) kunt koppelen.
+
+---
+
+## 🛠 Beheer Backend (Admin)
+
+- Nieuwe admin backend endpoints:
+  - `GET /api/admin/status` — platformstatus + kerncijfers
+  - `GET /api/admin/settings` — huidige globale instellingen
+  - `PATCH /api/admin/settings` — instellingen aanpassen
+- Nieuwe admin pagina: `/admin` (alleen voor rol `ADMIN`) om status te bekijken en instellingen te wijzigen.
+- Ondersteunde globale settings:
+  - `maintenance_mode`
+  - `allow_registrations` (wordt afgedwongen in registratie-endpoint)
+  - `assistant_enabled` (wordt afgedwongen in AI-assistent endpoint)
 
 ---
 

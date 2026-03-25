@@ -6,16 +6,18 @@ function run(cmd) {
 
 run("npx prisma generate");
 
-if (process.env.DATABASE_URL) {
-  console.log("🗄️ DATABASE_URL gedetecteerd: Prisma schema wordt toegepast (db push)...");
-  run("npx prisma db push --skip-generate");
+const shouldPushOnBuild = process.env.RUN_DB_PUSH_ON_BUILD === "true";
 
-  if (process.env.SEED_ON_DEPLOY === "true") {
-    console.log("🌱 SEED_ON_DEPLOY=true: demo seed wordt uitgevoerd...");
-    run("npm run db:seed");
-  }
+if (shouldPushOnBuild && process.env.DATABASE_URL) {
+  console.log("🗄️ RUN_DB_PUSH_ON_BUILD=true: Prisma schema wordt toegepast (db push)...");
+  run("npx prisma db push --skip-generate");
 } else {
-  console.log("ℹ️ Geen DATABASE_URL gevonden; db push overgeslagen.");
+  console.log("ℹ️ db push overgeslagen (zet RUN_DB_PUSH_ON_BUILD=true om dit tijdens build te doen).");
+}
+
+if (process.env.SEED_ON_DEPLOY === "true") {
+  console.log("🌱 SEED_ON_DEPLOY=true: demo seed wordt uitgevoerd...");
+  run("npm run db:seed");
 }
 
 run("next build");
