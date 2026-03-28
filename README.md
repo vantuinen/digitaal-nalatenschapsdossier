@@ -83,6 +83,20 @@ ALLOW_PROD_SEED=true npm run db:seed
 
 ---
 
+## 🛠 Beheer Backend (Admin)
+
+- Nieuwe admin backend endpoints:
+  - `GET /api/admin/status` — platformstatus + kerncijfers
+  - `GET /api/admin/settings` — huidige globale instellingen
+  - `PATCH /api/admin/settings` — instellingen aanpassen
+- Nieuwe admin pagina: `/admin` (alleen voor rol `ADMIN`) om status te bekijken en instellingen te wijzigen.
+- Ondersteunde globale settings:
+  - `maintenance_mode`
+  - `allow_registrations` (wordt afgedwongen in registratie-endpoint)
+  - `assistant_enabled` (wordt afgedwongen in AI-assistent endpoint)
+
+---
+
 ## 👤 Demo Accounts
 
 | Rol | E-mail | Wachtwoord |
